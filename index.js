@@ -50,9 +50,6 @@ bot.on('message', msg => {
     //First argument passed is set to command
     let command = args[0];
 
-    console.log(args);
-    console.log(command);
-
     //Exit if the command doesn't exit
     if (!bot.commands.has(command)) return;
 
