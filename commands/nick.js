@@ -1,8 +1,6 @@
 const fs = require('fs'); //Filesystem
 
 const nameTrackerJSON = 'nicknameTracker.json'
-const trackerPath = './'+nameTrackerJSON
-const initTracker = {"": []}
 
 module.exports = {
     name: 'nick',
