@@ -173,7 +173,7 @@ function gatherChannels() {
     var channels = [];
     var collection = new Discord.Collection();
     server.channels.cache.toJSON().forEach(x => {
-        /*if (x.type === 'voice')*/ channels.push(x);
+        if (x.type === 'voice') channels.push(x);
     });
     channels.forEach(x => {
         collection.set(x.name, x.id);
