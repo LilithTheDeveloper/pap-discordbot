@@ -27,6 +27,7 @@ const help = require('./config/help.json');
 //#endregion
 
 //#region Infrastructure
+
 //REQUIRED fileSize
 const nameTrackerJSON = 'nicknameTracker.json'
 const trackerPath = './'+nameTrackerJSON
@@ -35,18 +36,7 @@ const initTracker = {"": []}
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
-	if (fs.existsSync(trackerPath)) {
-		//file exists, move on
-		console.warn("nicknameTracker.json file exists, moving on");
-	}
-	else
-	{
-		console.warn("nicknameTracker.json file missing, creating a new one");
-		var emptyJson = JSON.stringify(initTracker);
-		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
-			if(err) console.log('error', err);
-		});
-	}
+    fileCheck();
 })
 
 bot.on('message', msg => {
@@ -112,12 +102,19 @@ function gatherChannels() {
     return collection;
 }
 
-function saveNick(fts) {
-    //filename is the path where the file is located
-    var fileName = "nicknameTracker.json"
-    var name = "nicknameTracker"
-    fs.writeFileSync(fileName, JSON.stringify(fts), null, 4);
-    console.log("Succesfully saved " + name + " to [" + name + ".json]!")
+//FILE INIT
+function fileCheck(){
+    if (fs.existsSync(trackerPath)) {
+		console.warn("nicknameTracker.json file exists, moving on");
+	}
+	else
+	{
+		console.warn("nicknameTracker.json file missing, creating a new one");
+		var emptyJson = JSON.stringify(initTracker);
+		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
+			if(err) console.log('error', err);
+		});
+	}
 }
 
 bot.login(config.token);

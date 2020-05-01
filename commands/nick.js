@@ -16,6 +16,7 @@ module.exports = {
         }
         switch (args[1]) {
             case 'register':
+                console.log("this happens");
                 //argumentvalidation
                 if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/rename/delete> <\"Nick\"> <\"Channel Name>\"");
                 if (!msg.content.match((/\".*?\"/g)[0])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
@@ -116,3 +117,4 @@ function saveNick(fts) {
     fs.writeFileSync(fileName, JSON.stringify(fts), null, 4);
     console.log("Succesfully saved to [" + fileName + "]!")
 }
+
