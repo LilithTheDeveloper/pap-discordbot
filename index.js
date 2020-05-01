@@ -14,9 +14,27 @@ const config = require('./config/config.json');
 const help = require('./config/help.json');
 //#endregion
 
+//#region Infrastructure
+//REQUIRED fileSize
+const nameTrackerJSON = 'nicknameTracker.json'
+const trackerPath = './'+nameTrackerJSON
+const initTracker = {"": []}
+
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
+	if (fs.existsSync(trackerPath)) {
+		//file exists, move on
+		console.warn("nicknameTracker.json file exists, moving on");
+	}
+	else
+	{
+		console.warn("nicknameTracker.json file missing, creating a new one");
+		var emptyJson = JSON.stringify(initTracker);
+		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
+			if(err) console.log('error', err);
+		});
+	}
 })
 
 bot.on('message', msg => {
@@ -25,7 +43,7 @@ bot.on('message', msg => {
         switch (args[0]) {
             //#region nicks
             case 'nick':
-                var nickJSON = fs.readFileSync('nicknameTracker.json');
+                var nickJSON = fs.readFileSync(nameTrackerJSON);
                 nickJSON = JSON.parse(nickJSON);
                 if (!nickJSON.players) {
                     nickJSON.players = [];
@@ -39,8 +57,23 @@ bot.on('message', msg => {
                         if (!msg.content.match((/\".*?\"/g)[1])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
 
                         //argument saving
-                        var nickName = msg.content.match(/\".*?\"/g)[0].replace(/\"?\"/g, '');
-                        var channelName = msg.content.match(/\".*?\"/g)[1].replace(/\"?\"/g, '');
+						try {
+							var nickName = msg.content.match(/\".*?\"/g)[0].replace(/\"?\"/g, '');
+						}
+						catch (err)
+						{
+							console.error("Error parsing message for nickname");
+							console.error(err);
+							return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname in quotation marks (\"like this\")");
+						}
+						try {
+							var channelName = msg.content.match(/\".*?\"/g)[1].replace(/\"?\"/g, '');
+						}
+						catch (err) {
+							console.error("Error parsing message for channel");
+							console.error(err);
+							return msg.reply("**ERROR**: Invalid arguments. Remember to put the channel name in quotation marks (\"like this\")");
+						}
 
                         //validateChannel & search ID
                         if (channelCollection.has(channelName)) {
@@ -140,7 +173,7 @@ function gatherChannels() {
     var channels = [];
     var collection = new Discord.Collection();
     server.channels.cache.toJSON().forEach(x => {
-        if (x.type === 'voice') channels.push(x);
+        /*if (x.type === 'voice')*/ channels.push(x);
     });
     channels.forEach(x => {
         collection.set(x.name, x.id);
