@@ -26,9 +26,27 @@ const config = require('./config/config.json');
 const help = require('./config/help.json');
 //#endregion
 
+//#region Infrastructure
+//REQUIRED fileSize
+const nameTrackerJSON = 'nicknameTracker.json'
+const trackerPath = './'+nameTrackerJSON
+const initTracker = {"": []}
+
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
+	if (fs.existsSync(trackerPath)) {
+		//file exists, move on
+		console.warn("nicknameTracker.json file exists, moving on");
+	}
+	else
+	{
+		console.warn("nicknameTracker.json file missing, creating a new one");
+		var emptyJson = JSON.stringify(initTracker);
+		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
+			if(err) console.log('error', err);
+		});
+	}
 })
 
 bot.on('message', msg => {
