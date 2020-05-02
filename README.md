@@ -17,7 +17,7 @@ To make the bot work, rename the config_example.json to config.json and edit the
 
 This bot is currently intended to be used by people who have a basic understanding of how to setup a discord bot and handle node.js.
 
-##Features
+## Features
 To be added
 
 ## Capability Clarification
