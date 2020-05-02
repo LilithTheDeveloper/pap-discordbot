@@ -6,8 +6,20 @@ const AUTHOR = "Lilith the Succubus";
 const Discord = require('discord.js'); //duh
 const fs = require('fs'); //filesystem
 
+
 //Main Instance of the bot, call this for everything
 const bot = new Discord.Client();
+
+//Code for dynamic command handling
+bot.commands = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    // set a new item in the Collection
+    // with the key as the command name and the value as the exported module
+    bot.commands.set(command.name, command);
+}
+
 
 //External JSON filestest
 const config = require('./config/config.json');
@@ -15,6 +27,7 @@ const help = require('./config/help.json');
 //#endregion
 
 //#region Infrastructure
+
 //REQUIRED fileSize
 const nameTrackerJSON = 'nicknameTracker.json'
 const trackerPath = './'+nameTrackerJSON
@@ -23,128 +36,33 @@ const initTracker = {"": []}
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
-	if (fs.existsSync(trackerPath)) {
-		//file exists, move on
-		console.warn("nicknameTracker.json file exists, moving on");
-	}
-	else
-	{
-		console.warn("nicknameTracker.json file missing, creating a new one");
-		var emptyJson = JSON.stringify(initTracker);
-		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
-			if(err) console.log('error', err);
-		});
-	}
+    fileCheck();
 })
 
 bot.on('message', msg => {
-    if (msg.content[0] === config.prefix) {
-        let args = msg.content.substring(config.prefix.length).toLowerCase().split(" ");
-        switch (args[0]) {
-            //#region nicks
-            case 'nick':
-                var nickJSON = fs.readFileSync(nameTrackerJSON);
-                nickJSON = JSON.parse(nickJSON);
-                if (!nickJSON.players) {
-                    nickJSON.players = [];
-                    saveNick(nickJSON);
-                }
-                switch (args[1]) {
-                    case 'register':
-                        //argumentvalidation
-                        if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/rename/delete> <\"Nick\"> <\"Channel Name>\"");
-                        if (!msg.content.match((/\".*?\"/g)[0])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
-                        if (!msg.content.match((/\".*?\"/g)[1])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
 
-                        //argument saving
-						try {
-							var nickName = msg.content.match(/\".*?\"/g)[0].replace(/\"?\"/g, '');
-						}
-						catch (err)
-						{
-							console.error("Error parsing message for nickname");
-							console.error(err);
-							return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname in quotation marks (\"like this\")");
-						}
-						try {
-							var channelName = msg.content.match(/\".*?\"/g)[1].replace(/\"?\"/g, '');
-						}
-						catch (err) {
-							console.error("Error parsing message for channel");
-							console.error(err);
-							return msg.reply("**ERROR**: Invalid arguments. Remember to put the channel name in quotation marks (\"like this\")");
-						}
+    //Exit when incoming message does not start with specifed prefix or is sent by the bot
+    if (!msg.content.startsWith(config.prefix) || msg.author.bot) return;
 
-                        //validateChannel & search ID
-                        if (channelCollection.has(channelName)) {
-                            var channelID = channelCollection.get(channelName);
-                        } else {
-                            return msg.reply("**ERROR**: There is no such channel. Maybe you made a typo?");
-                        }
+    //Remove Prefix and create Array with each of the arguments
+    let args = msg.content.substring(config.prefix.length).toLowerCase().split(/ +/);
 
-                        //summary
-                        msg.channel.send(`__**Sucessful Registration**__\nChannel Name: ${channelName}\nNick: ${nickName}`);
+    //First argument passed is set to command
+    let command = args[0];
 
-                        //saving format
-                        var player;
-                        //check if player exists
-                        //true -> load player from file 
-                        //false -> create new player
-                        for (let i = 0; i < nickJSON.players.length; i++) {
-                            if (nickJSON.players[i].userid === msg.author.id) {
-                                player = nickJSON.players[i];
-                            }
-                        }
-                        if (!player) {
-                            var player = {
-                                name: msg.member.displayName,
-                                userid: msg.author.id,
-                                registrations: []
-                            }
-                            nickJSON.players.push(player);
-                        }
-                        //check for existing registration
-                        //true -> rename nick
-                        //false -> register
-                        nickJSON.players.forEach(player => {
-                            var found = false;
-                            //renaming
-                            player.registrations.forEach(register => {
-                                if (register.channelid === channelID && player.userid === msg.author.id) {
-                                    register.nickname = nickName;
-                                    found = true;
-                                }
-                            })
-                            //new registration
-                            if (player.userid === msg.author.id && !found) {
-                                player.registrations.push({
-                                    nickname: nickName,
-                                    channelid: channelID
-                                })
-                            }
-                        });
-                        saveNick(nickJSON);
-                        break;
-                    case 'delete':
-                        //argumentvalidation
-                        if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/rename/delete> <\"Nick\"> <\"Channel Name>\"");
-                        if (!msg.content.match((/\".*?\"/g)[0])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
-                        var delNickName = msg.content.match(/\".*?\"/g)[0].replace(/\"?\"/g, '');
-                        for (let i = 0; i < nickJSON.players.length; i++) {
-                            for (let j = 0; j < nickJSON.players[i].registrations.length; j++) {
-                                if (nickJSON.players[i].registrations[j].nickname === delNickName) {
-                                    nickJSON.players[i].registrations.splice(j, 1);
-                                    msg.reply("Successfully removed the nick!");
-                                    break;
-                                }
-                            }
-                        }
-                        saveNick(nickJSON);
-                        break;
-                }
-                break;
-            //#endregion
+    //Exit if the command doesn't exit
+    if (!bot.commands.has(command)) return;
+
+    try {
+        if(msg.content.includes("info")){
+            msg.reply(bot.commands.get(command).description);
         }
+        else{
+            bot.commands.get(command).execute(msg, args);
+        }
+    } catch (error) {
+        console.error(error);
+        msg.reply('Something has gone wrong, please scream!');
     }
 })
 
@@ -154,7 +72,7 @@ bot.on('voiceStateUpdate', (oldState, newState) => {
     var nickJSON = fs.readFileSync('nicknameTracker.json');
     nickJSON = JSON.parse(nickJSON);
     //Check if userid is in registrations
-    if(!nickJSON.players) return; 
+    if (!nickJSON.players) return;
     nickJSON.players.forEach(player => {
         if (player.userid === newState.member.id) {
             for (let i = 0; i < player.registrations.length; i++) {
@@ -181,12 +99,19 @@ function gatherChannels() {
     return collection;
 }
 
-function saveNick(fts) {
-    //filename is the path where the file is located
-    var fileName = "nicknameTracker.json"
-    var name = "nicknameTracker"
-    fs.writeFileSync(fileName, JSON.stringify(fts), null, 4);
-    console.log("Succesfully saved " + name + " to [" + name + ".json]!")
+//FILE INIT
+function fileCheck(){
+    if (fs.existsSync(trackerPath)) {
+		console.warn("nicknameTracker.json file exists, moving on");
+	}
+	else
+	{
+		console.warn("nicknameTracker.json file missing, creating a new one");
+		var emptyJson = JSON.stringify(initTracker);
+		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
+			if(err) console.log('error', err);
+		});
+	}
 }
 
 bot.login(config.token);
