@@ -1,6 +1,6 @@
 const fs = require('fs'); //Filesystem
 
-const nameTrackerJSON = 'nicknameTracker.json'
+const nameTrackerJSON = 'config/nicknameTracker.json'
 
 module.exports = {
     name: 'nick',
@@ -110,8 +110,7 @@ module.exports = {
 
 function saveNick(fts) {
     //filename is the path where the file is located
-    var fileName = "nicknameTracker.json"
-    fs.writeFileSync(fileName, JSON.stringify(fts), null, 4);
-    console.log("Succesfully saved to [" + fileName + "]!")
+    fs.writeFileSync(nameTrackerJSON, JSON.stringify(fts), null, 4);
+    console.log("Succesfully saved to [" + nameTrackerJSON + "]!")
 }
 

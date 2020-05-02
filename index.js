@@ -19,24 +19,32 @@ for (const file of commandFiles) {
     // with the key as the command name and the value as the exported module
     bot.commands.set(command.name, command);
 }
+//Filesystem Handling - I think every json file should end up in the config directory. Just to not clutter the main directory too much.
+const nameTrackerJSON = 'nicknameTracker.json'
+const configJSON = 'config.json'
+var files = [nameTrackerJSON, configJSON]
 
+const trackerPath = './config/'
+const initTracker = { "": [] }
+
+fileCheck();
+const config = require('./config/config.json');
 
 //External JSON filestest
-const config = require('./config/config.json');
-const help = require('./config/help.json');
 //#endregion
 
 //#region Infrastructure
 
-//REQUIRED fileSize
-const nameTrackerJSON = 'nicknameTracker.json'
-const trackerPath = './'+nameTrackerJSON
-const initTracker = {"": []}
+
+
+
 
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
-    fileCheck();
+    //initializing the consts
+
+
 })
 
 bot.on('message', msg => {
@@ -54,10 +62,10 @@ bot.on('message', msg => {
     if (!bot.commands.has(command)) return;
 
     try {
-        if(msg.content.includes("info")){
+        if (msg.content.includes("info")) {
             msg.reply(bot.commands.get(command).description);
         }
-        else{
+        else {
             bot.commands.get(command).execute(msg, args);
         }
     } catch (error) {
@@ -100,18 +108,36 @@ function gatherChannels() {
 }
 
 //FILE INIT
-function fileCheck(){
-    if (fs.existsSync(trackerPath)) {
-		console.warn("nicknameTracker.json file exists, moving on");
-	}
-	else
-	{
-		console.warn("nicknameTracker.json file missing, creating a new one");
-		var emptyJson = JSON.stringify(initTracker);
-		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
-			if(err) console.log('error', err);
-		});
-	}
+function fileCheck() {
+    var config_prefab = {
+        prefix: "!",
+        token: "<Enter Bot Token>",
+        server_id: "<Enter Server ID>"
+    }
+    var emptyJson = "";
+    for (var file of files) {
+        if (fs.existsSync(trackerPath + file)) {
+            console.warn(`${file} exists. Moving on.`);
+        }
+        else {
+            console.warn(`${file} file missing -> Creating a new one`);
+            switch(file){
+                case "config.json":
+                    emptyJson = JSON.stringify(config_prefab);
+                    break;
+                default:
+                    emptyJson = JSON.stringify(initTracker);
+                    break;
+            }
+            var path = trackerPath+file;
+            //Needs to be syncronized to correcty write to files
+            fs.writeFileSync(path, emptyJson, function (err, result) {
+                if (err) console.log('error', err);
+            });
+        }
+    }
 }
 
-bot.login(config.token);
+    bot.login(config.token)
+        .then(console.log("Bot Login"))
+        .catch(error => console.log("The provided token is invalid. Please check your config file in config/config.json for a valid bot token.\n" + error))
