@@ -109,11 +109,18 @@ function gatherChannels() {
 
 //FILE INIT
 function fileCheck() {
+    var dir = "config"
+
     var config_prefab = {
         prefix: "!",
         token: "<Enter Bot Token>",
         server_id: "<Enter Server ID>"
     }
+
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
+
     var emptyJson = "";
     for (var file of files) {
         if (fs.existsSync(trackerPath + file)) {
