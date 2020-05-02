@@ -65,19 +65,22 @@ bot.on('message', msg => {
         if (msg.content.includes("info")) {
             msg.reply(bot.commands.get(command).description);
         }
+        else if (msg.content.includes("debug")) {
+            bot.commands.get(command).debug(msg, args);
+        }
         else {
             bot.commands.get(command).execute(msg, args);
         }
     } catch (error) {
         console.error(error);
-        msg.reply('Something has gone wrong, please scream!');
+        msg.reply('ERROR: Invalid Syntax');
     }
 })
 
 bot.on('voiceStateUpdate', (oldState, newState) => {
     //if user has not switched channels
     if (oldState.channelID === newState.channelID) return;
-    var nickJSON = fs.readFileSync('nicknameTracker.json');
+    var nickJSON = fs.readFileSync(`${trackerPath + nameTrackerJSON}`);
     nickJSON = JSON.parse(nickJSON);
     //Check if userid is in registrations
     if (!nickJSON.players) return;
@@ -117,7 +120,7 @@ function fileCheck() {
         server_id: "<Enter Server ID>"
     }
 
-    if (!fs.existsSync(dir)){
+    if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 
@@ -128,7 +131,7 @@ function fileCheck() {
         }
         else {
             console.warn(`${file} file missing -> Creating a new one`);
-            switch(file){
+            switch (file) {
                 case "config.json":
                     emptyJson = JSON.stringify(config_prefab);
                     break;
@@ -136,7 +139,7 @@ function fileCheck() {
                     emptyJson = JSON.stringify(initTracker);
                     break;
             }
-            var path = trackerPath+file;
+            var path = trackerPath + file;
             //Needs to be syncronized to correcty write to files
             fs.writeFileSync(path, emptyJson, function (err, result) {
                 if (err) console.log('error', err);
@@ -145,6 +148,6 @@ function fileCheck() {
     }
 }
 
-    bot.login(config.token)
-        .then(console.log("Bot Login"))
-        .catch(error => console.log("The provided token is invalid. Please check your config file in config/config.json for a valid bot token.\n" + error))
+bot.login(config.token)
+    .then(console.log("Bot Login"))
+    .catch(error => console.log("The provided token is invalid. Please check your config file in config/config.json for a valid bot token.\n" + error))
