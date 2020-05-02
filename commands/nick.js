@@ -1,10 +1,10 @@
 const fs = require('fs'); //Filesystem
 
-const nameTrackerJSON = 'config/nicknameTracker.json'
+const nameTrackerJSON = './config/nicknameTracker.json'
 
 module.exports = {
     name: 'nick',
-    description: 'Fantastic nick command!',
+    description: 'A command to change your nicknames when in a specific voice channel:\n!nick <register/delete> <\"Nick\"> <\"Channel Name>\"',
     execute(msg, args) {
         var nickJSON = fs.readFileSync(nameTrackerJSON);
         nickJSON = JSON.parse(nickJSON);
@@ -15,7 +15,7 @@ module.exports = {
         switch (args[1]) {
             case 'register':
                 //argumentvalidation
-                if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/rename/delete> <\"Nick\"> <\"Channel Name>\"");
+                if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/delete> <\"Nick\"> <\"Channel Name>\"");
                 if (!msg.content.match((/\".*?\"/g)[0])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
                 if (!msg.content.match((/\".*?\"/g)[1])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
 
@@ -46,7 +46,7 @@ module.exports = {
                 }
 
                 //summary
-                msg.channel.send(`__**Sucessful Registration**__\nChannel Name: ${channelName}\nNick: ${nickName}`);
+                msg.channel.send(`__**Registration success!**__\nChannel Name: ${channelName}\nNick: ${nickName}`);
 
                 //saving format
                 var player;
@@ -109,7 +109,6 @@ module.exports = {
 };
 
 function saveNick(fts) {
-    //filename is the path where the file is located
     fs.writeFileSync(nameTrackerJSON, JSON.stringify(fts), null, 4);
     console.log("Succesfully saved to [" + nameTrackerJSON + "]!")
 }

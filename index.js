@@ -28,23 +28,15 @@ const trackerPath = './config/'
 const initTracker = { "": [] }
 
 fileCheck();
+
+
+
 const config = require('./config/config.json');
-
-//External JSON filestest
-//#endregion
-
-//#region Infrastructure
-
-
-
 
 
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
-    //initializing the consts
-
-
 })
 
 bot.on('message', msg => {
