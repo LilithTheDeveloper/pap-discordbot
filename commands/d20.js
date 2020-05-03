@@ -8,6 +8,7 @@ module.exports = {
     },
 	execute(msg, args) {
         try {
+            //i know this is pretty disgusting code, but it worked so i haven't touched after writing it down
             var roll = RandomFromTo(0, 20);
             var bonus = 0;
             var sign = "+";
@@ -35,7 +36,7 @@ module.exports = {
             }
             msg.channel.send(`<@${msg.author.id}>${res}!`);
         } catch (error) {
-            msg.reply(`Something went wrong... ${error}\n`)
+            msg.reply(`ERROR: Invalid syntax -> \`${error}\`\n`)
         }
     },
 };

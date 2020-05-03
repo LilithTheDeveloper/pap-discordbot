@@ -32,7 +32,7 @@ fileCheck();
 
 
 const config = require('./config/config.json');
-
+const nick = require('./commands/nick');
 
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
