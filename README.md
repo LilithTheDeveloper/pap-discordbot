@@ -13,6 +13,7 @@ This is just a pure implemenation of the nick feature of the Discord bot. If any
 ## Installation
 - Create a server, for example on aws as described in this [video](https://www.youtube.com/watch?v=W4FTfaHTmB4).
 - Install node.js on the server. Install instructions for differente operating systems can be found on the official [node.js website](https://nodejs.org/en/download/).
+- Clone this repository on the server.
 - Then you need to initialize the directory with these commands:
     ```
     > npm init
