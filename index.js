@@ -29,10 +29,8 @@ const initTracker = { "": [] }
 
 fileCheck();
 
-
-
 const config = require('./config/config.json');
-const nick = require('./commands/nick');
+const nick = require('./commands/nick.js');
 
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
@@ -70,7 +68,7 @@ bot.on('message', msg => {
 })
 
 bot.on('voiceStateUpdate', (oldState, newState) => {
-    nick.renameNickname(oldState, newState);
+    bot.commands.get('nick').renameNickname(oldState,newState);
 })
 
 function gatherChannels() {
