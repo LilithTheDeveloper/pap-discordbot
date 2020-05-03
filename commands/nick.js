@@ -113,3 +113,22 @@ function saveNick(fts) {
     console.log("Succesfully saved to [" + nameTrackerJSON + "]!")
 }
 
+exports.renameNickname = function(oldState,newState){
+    //if user has not switched channels
+    if (oldState.channelID === newState.channelID) return;
+    var nickJSON = fs.readFileSync(`${trackerPath + nameTrackerJSON}`);
+    nickJSON = JSON.parse(nickJSON);
+    //Check if userid is in registrations
+    if (!nickJSON.players) return;
+    nickJSON.players.forEach(player => {
+        if (player.userid === newState.member.id) {
+            for (let i = 0; i < player.registrations.length; i++) {
+                if (player.registrations[i].channelid === newState.channelID && (newState.guild.me.hasPermission('MANAGE_NICKNAMES'))) {
+                    newState.member.setNickname(player.registrations[i].nickname)
+                    return;
+                }
+            }
+            newState.member.setNickname(player.name)
+        }
+    });
+}
