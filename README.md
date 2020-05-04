@@ -4,11 +4,9 @@ A discord bot that assists in the daily struggles of dungeons masters and player
 
 Still figuring out how git works, so bear with me.
 
-## Commands:
-!nick register "Your Nick" "Channel Name" - Registeres your nickname
-!nick delete "Your Nick" - Deletes your nick
 
-This is just a pure implemenation of the nick feature of the Discord bot. If anyone is interested in having a dice rolling feature, I'd also add that to this bot. (Example: https://imgur.com/a/OtFvcJY)
+
+This is just a pure implemenation of the nick feature of the Discord bot. If anyone is interested in having a dice rolling feature, I'd also add that to this bot. (Example: )
 
 ## Installation
 - Create a server, for example on aws as described in this [video](https://www.youtube.com/watch?v=W4FTfaHTmB4).
@@ -33,7 +31,17 @@ This is just a pure implemenation of the nick feature of the Discord bot. If any
 <b> This bot is currently intended to be used by people who have a basic understanding of how to setup a discord bot and handle node.js. </b>
 
 ## Features
-To be added
+
+- Custom nick names per voice channel like this (https://imgur.com/a/yA8Bqh2!)
+- Roll the classical D20 and let the dice decide your fate!
+- Is the D20 not classy enoguh? Use !d <Dice Notation> to roll any dice combination you can imagine! (https://imgur.com/a/OtFvcJY)
+    
+## Commands:
+    !nick register "Your Nick" "Channel Name" - Registeres your nickname
+    !nick delete "Your Nick" - Deletes your nick
+    
+    !d20 <Bonus> | e.g. !d20 +7 Perception
+    !d <Dice Notation>  | e.g. !d 1d4+5
 
 ## Capability Clarification
 The bot currently is not able to change the nickname of the server owner*.
