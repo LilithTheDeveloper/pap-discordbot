@@ -59,7 +59,13 @@ bot.on('message', msg => {
             bot.commands.get(command).debug(msg, args);
         }
         else {
-            bot.commands.get(command).execute(msg, args);
+            console.log("bool1" + bot.commands.get(command).experimental)
+            console.log("bool2" + !config.experimental_commands)
+            if (bot.commands.get(command).experimental && !config.experimental_commands) {
+                return msg.reply("ERROR: The command you tried to use is experimental.\nThe use may severly break the bot or other features\nTo activate it's use, change \`experimental_commands\` in the config from \`true\` to \`false\`");
+            } else {
+                bot.commands.get(command).execute(msg, args);
+            }
         }
     } catch (error) {
         console.error(error);
@@ -68,7 +74,7 @@ bot.on('message', msg => {
 })
 
 bot.on('voiceStateUpdate', (oldState, newState) => {
-    bot.commands.get('nick').renameNickname(oldState,newState);
+    bot.commands.get('nick').renameNickname(oldState, newState);
 })
 
 function gatherChannels() {
@@ -91,7 +97,8 @@ function fileCheck() {
     var config_prefab = {
         prefix: "!",
         token: "<Enter Bot Token>",
-        server_id: "<Enter Server ID>"
+        server_id: "<Enter Server ID>",
+        experimental_commands: false,
     }
 
     if (!fs.existsSync(dir)) {

@@ -10,11 +10,8 @@ var diceDivide = function (s, bracketCount) {
 	if (indexOfClosed == -1) {
 		indexOfClosed = s.length;
 	}
-	//console.warn("open: " + indexOfOpen + ", closed: " + indexOfClosed);
 
 	if (indexOfOpen == -1 && indexOfClosed == s.length) {
-
-	//	console.log("DAYUM!");
 		return calcDiceExpressions(s);
 	}
 	else if (indexOfOpen != -1 && indexOfOpen < indexOfClosed) {
@@ -73,12 +70,4 @@ var RandomFromTo = function (from, to) {
 
 exports.RandomFromTo = function (from, to) {
 	return Number(Math.floor(Math.random() * (to + -from) + from + 1));
-}
-
-var RandomColours = function () {
-	return "rgb( " + RandomFromTo(0, 255) + ", " + RandomFromTo(0, 255) + ", " + RandomFromTo(0, 255) + ")";
-}
-
-exports.diffrerentDices = function (res, dS) {
-	dices[n] = `[${res}, ${dS}]`
 }
