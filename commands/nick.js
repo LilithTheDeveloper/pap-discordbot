@@ -1,12 +1,13 @@
 const fs = require('fs'); //Filesystem
 const trackerPath = './config/';
 const nameTrackerJSON = 'nicknameTracker.json';
+const nameTracker = trackerPath + nameTrackerJSON;
 
 module.exports = {
     name: 'nick',
     description: 'A command to change your nicknames when in a specific voice channel:\n!nick <register/delete> <\"Nick\"> <\"Channel Name>\"',
     execute(msg, args) {
-        var nickJSON = fs.readFileSync(nameTrackerJSON);
+        var nickJSON = fs.readFileSync(nameTracker);
         nickJSON = JSON.parse(nickJSON);
         if (!nickJSON.players) {
             nickJSON.players = [];
@@ -109,12 +110,36 @@ module.exports = {
     renameNickname(oldState,newState){
         //if user has not switched channels
         if (oldState.channelID === newState.channelID) return;
-        var nickJSON = fs.readFileSync(`${trackerPath + nameTrackerJSON}`);
+		
+		/* check if the user is entering a voice chat from text. This is done to determine if we need to update their default nickname.
+		* If they are entering a voice channel from nothing, updateNick will be true.
+		* If they are swapping between voice channels, updateNick will be false.
+		* If they are leaving a voice channel to return to just text, updateNick will be false.
+		*/
+		let oldvoice = false;
+		let newvoice = false;
+		try {
+			oldvoice = oldState.channel.type == 'voice';
+		} catch (err) { /*Swallow the exception, the user is not in a "valid" channel, assuming not voice*/ }
+		try { 
+			newvoice = newState.channel.type == 'voice';
+		} catch (err) { /*Swallow the exception, the user is not in a "valid" channel, assuming not voice*/ }
+		let updateNick = !oldvoice && newvoice;
+		
+		//Load the nickname JSON file
+        var nickJSON = fs.readFileSync(nameTracker);
         nickJSON = JSON.parse(nickJSON);
+		
         //Check if userid is in registrations
         if (!nickJSON.players) return;
         nickJSON.players.forEach(player => {
             if (player.userid === newState.member.id) {
+				//check the stored default nickname against the current nickname
+				//only update the nickname if we are going from no voice channel to a voice channel
+				if (player.name != oldState.member.nickname && updateNick)
+					player.name = oldState.member.nickname;
+					saveNick(nickJSON);
+				}
                 for (let i = 0; i < player.registrations.length; i++) {
                     if (player.registrations[i].channelid === newState.channelID && (newState.guild.me.hasPermission('MANAGE_NICKNAMES'))) {
                         newState.member.setNickname(player.registrations[i].nickname)
@@ -128,6 +153,6 @@ module.exports = {
 };
 
 function saveNick(fts) {
-    fs.writeFileSync(nameTrackerJSON, JSON.stringify(fts), null, 4);
+    fs.writeFileSync(nameTracker, JSON.stringify(fts), null, 4);
     console.log("Succesfully saved to [" + nameTrackerJSON + "]!")
 }

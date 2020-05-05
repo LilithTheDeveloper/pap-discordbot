@@ -32,6 +32,8 @@ fileCheck();
 const config = require('./config/config.json');
 const nick = require('./commands/nick.js');
 
+//#endregion
+
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
