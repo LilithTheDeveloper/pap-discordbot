@@ -1,10 +1,10 @@
 const fs = require('fs'); //Filesystem
-
-const nameTrackerJSON = 'nicknameTracker.json'
+const trackerPath = './config/';
+const nameTrackerJSON = 'nicknameTracker.json';
 
 module.exports = {
     name: 'nick',
-    description: 'Fantastic nick command!',
+    description: 'A command to change your nicknames when in a specific voice channel:\n!nick <register/delete> <\"Nick\"> <\"Channel Name>\"',
     execute(msg, args) {
         var nickJSON = fs.readFileSync(nameTrackerJSON);
         nickJSON = JSON.parse(nickJSON);
@@ -15,7 +15,7 @@ module.exports = {
         switch (args[1]) {
             case 'register':
                 //argumentvalidation
-                if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/rename/delete> <\"Nick\"> <\"Channel Name>\"");
+                if (!args[2]) return msg.reply("**ERROR**: Not enough valid arguments\nCorrect format: !nick <register/delete> <\"Nick\"> <\"Channel Name>\"");
                 if (!msg.content.match((/\".*?\"/g)[0])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
                 if (!msg.content.match((/\".*?\"/g)[1])) return msg.reply("**ERROR**: Invalid arguments. Remember to put your nickname and the channel name in quotation marks (\"like this\")");
 
@@ -46,7 +46,7 @@ module.exports = {
                 }
 
                 //summary
-                msg.channel.send(`__**Sucessful Registration**__\nChannel Name: ${channelName}\nNick: ${nickName}`);
+                msg.channel.send(`__**Registration success!**__\nChannel Name: ${channelName}\nNick: ${nickName}`);
 
                 //saving format
                 var player;
@@ -106,12 +106,28 @@ module.exports = {
                 break;
         }
     },
+    renameNickname(oldState,newState){
+        //if user has not switched channels
+        if (oldState.channelID === newState.channelID) return;
+        var nickJSON = fs.readFileSync(`${trackerPath + nameTrackerJSON}`);
+        nickJSON = JSON.parse(nickJSON);
+        //Check if userid is in registrations
+        if (!nickJSON.players) return;
+        nickJSON.players.forEach(player => {
+            if (player.userid === newState.member.id) {
+                for (let i = 0; i < player.registrations.length; i++) {
+                    if (player.registrations[i].channelid === newState.channelID && (newState.guild.me.hasPermission('MANAGE_NICKNAMES'))) {
+                        newState.member.setNickname(player.registrations[i].nickname)
+                        return;
+                    }
+                }
+                newState.member.setNickname(player.name)
+            }
+        });
+    }
 };
 
 function saveNick(fts) {
-    //filename is the path where the file is located
-    var fileName = "nicknameTracker.json"
-    fs.writeFileSync(fileName, JSON.stringify(fts), null, 4);
-    console.log("Succesfully saved to [" + fileName + "]!")
+    fs.writeFileSync(nameTrackerJSON, JSON.stringify(fts), null, 4);
+    console.log("Succesfully saved to [" + nameTrackerJSON + "]!")
 }
-

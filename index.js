@@ -19,26 +19,24 @@ for (const file of commandFiles) {
     // with the key as the command name and the value as the exported module
     bot.commands.set(command.name, command);
 }
-
-
-//External JSON filestest
-const config = require('./config/config.json');
-const help = require('./config/help.json');
-//#endregion
-
-//#region Infrastructure
-
-//REQUIRED fileSize
+//Filesystem Handling - I think every json file should end up in the config directory. Just to not clutter the main directory too much.
 const nameTrackerJSON = 'nicknameTracker.json'
-const trackerPath = './'+nameTrackerJSON
-const initTracker = {"": []}
+const configJSON = 'config.json'
+var files = [nameTrackerJSON, configJSON]
+
+const trackerPath = './config/'
+const initTracker = { "": [] }
+
+fileCheck();
+
+const config = require('./config/config.json');
+const nick = require('./commands/nick.js');
 
 //#endregion
 
 bot.on('ready', () => {
     console.log('This bot is now active\nVersion: ' + VERSION);
     channelCollection = gatherChannels();
-    fileCheck();
 })
 
 bot.on('message', msg => {
@@ -56,62 +54,29 @@ bot.on('message', msg => {
     if (!bot.commands.has(command)) return;
 
     try {
-        if(msg.content.includes("info")){
+        if (msg.content.includes("info")) {
             msg.reply(bot.commands.get(command).description);
         }
-        else{
-            bot.commands.get(command).execute(msg, args);
+        else if (msg.content.includes("debug")) {
+            bot.commands.get(command).debug(msg, args);
+        }
+        else {
+            console.log("bool1" + bot.commands.get(command).experimental)
+            console.log("bool2" + !config.experimental_commands)
+            if (bot.commands.get(command).experimental && !config.experimental_commands) {
+                return msg.reply("ERROR: The command you tried to use is experimental.\nThe use may severly break the bot or other features\nTo activate it's use, change \`experimental_commands\` in the config from \`true\` to \`false\`");
+            } else {
+                bot.commands.get(command).execute(msg, args);
+            }
         }
     } catch (error) {
         console.error(error);
-        msg.reply('Something has gone wrong, please scream!');
+        msg.reply('ERROR: Invalid Syntax');
     }
 })
 
 bot.on('voiceStateUpdate', (oldState, newState) => {
-    //if user has not switched channels
-    if (oldState.channelID === newState.channelID) return;
-	
-	/* check if the user is entering a voice chat from text. This is done to determine if we need to update their default nickname.
-	* If they are entering a voice channel from nothing, updateNick will be true.
-	* If they are swapping between voice channels, updaeNick will be false.
-	* If they are leaving a voice channel to return to just text, updateNick will be false.
-	*/
-	let oldvoice = false;
-	let newvoice = false;
-	try {
-		oldvoice = oldState.channel.type == 'voice';
-	} catch (err) { /*Swallow the exception, the user is not in a "valid" channel, assuming not voice*/ }
-    try { 
-		newvoice = newState.channel.type == 'voice';
-	} catch (err) { /*Swallow the exception, the user is not in a "valid" channel, assuming not voice*/ }
-	let updateNick = !oldvoice && newvoice;
-	
-	//Load the nickname JSON file
-    var nickJSON = fs.readFileSync(nameTrackerJSON);
-    nickJSON = JSON.parse(nickJSON);
-	
-    //Check if userid is in registrations
-    if (!nickJSON.players) return;
-    nickJSON.players.forEach(player => {
-        if (player.userid === newState.member.id) {
-			//check the stored default nickname against the current nickname
-			//only update the nickname if we are going from no voice channel to a voice channel
-			if (player.name != oldState.member.nickname && updateNick) {
-				player.name = oldState.member.nickname;
-				//I couldn't figure out how to call the existing saveNick function from nick.js so I just put the important lines here
-				fs.writeFileSync(nameTrackerJSON, JSON.stringify(nickJSON), null, 4);
-				console.log("Succesfully updated default name to: \"" + player.name + "\" for userid: " + oldState.member.id);
-			}
-            for (let i = 0; i < player.registrations.length; i++) {
-                if (player.registrations[i].channelid === newState.channelID && (newState.guild.me.hasPermission('MANAGE_NICKNAMES'))) {
-                    newState.member.setNickname(player.registrations[i].nickname)
-                    return;
-                }
-            }
-            newState.member.setNickname(player.name)
-        }
-    });
+    bot.commands.get('nick').renameNickname(oldState, newState);
 })
 
 function gatherChannels() {
@@ -128,18 +93,44 @@ function gatherChannels() {
 }
 
 //FILE INIT
-function fileCheck(){
-    if (fs.existsSync(trackerPath)) {
-		console.warn("nicknameTracker.json file exists, moving on");
-	}
-	else
-	{
-		console.warn("nicknameTracker.json file missing, creating a new one");
-		var emptyJson = JSON.stringify(initTracker);
-		fs.writeFile('nicknameTracker.json', emptyJson, function(err, result) {
-			if(err) console.log('error', err);
-		});
-	}
+function fileCheck() {
+    var dir = "config"
+
+    var config_prefab = {
+        prefix: "!",
+        token: "<Enter Bot Token>",
+        server_id: "<Enter Server ID>",
+        experimental_commands: false,
+    }
+
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
+
+    var emptyJson = "";
+    for (var file of files) {
+        if (fs.existsSync(trackerPath + file)) {
+            console.warn(`${file} exists. Moving on.`);
+        }
+        else {
+            console.warn(`${file} file missing -> Creating a new one`);
+            switch (file) {
+                case "config.json":
+                    emptyJson = JSON.stringify(config_prefab);
+                    break;
+                default:
+                    emptyJson = JSON.stringify(initTracker);
+                    break;
+            }
+            var path = trackerPath + file;
+            //Needs to be syncronized to correcty write to files
+            fs.writeFileSync(path, emptyJson, function (err, result) {
+                if (err) console.log('error', err);
+            });
+        }
+    }
 }
 
-bot.login(config.token);
+bot.login(config.token)
+    .then(console.log("Bot Login"))
+    .catch(error => console.log("The provided token is invalid. Please check your config file in config/config.json for a valid bot token.\n" + error))
