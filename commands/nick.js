@@ -136,7 +136,7 @@ module.exports = {
             if (player.userid === newState.member.id) {
 				//check the stored default nickname against the current nickname
 				//only update the nickname if we are going from no voice channel to a voice channel
-				if (player.name != oldState.member.nickname && updateNick)
+				if (player.name != oldState.member.nickname && updateNick) {
 					player.name = oldState.member.nickname;
 					saveNick(nickJSON);
 				}
