@@ -45,11 +45,19 @@ bot.on('message', msg => {
     if (!msg.content.startsWith(config.prefix) || msg.author.bot) return;
 
     //Remove Prefix and create Array with each of the arguments
-    let args = msg.content.substring(config.prefix.length).toLowerCase().split(/ +/);
+    msg.content = msg.content.substring(config.prefix.length);
+    let args = msg.content.toLowerCase().split(/ +/);
 
-    //First argument passed is set to command
-    let command = args[0];
+    let command;
 
+    //Check if is a dice cmd
+    if(msg.content.match(/^\d/) || msg.content.match(/^d/)){
+        command = 'd';
+    }else{
+        //First argument passed is set to command
+        command = args[0];
+    }
+    
     //Exit if the command doesn't exit
     if (!bot.commands.has(command)) return;
 
