@@ -1,6 +1,0 @@
-{
-	"prefix": "!",
-    "token": "<Enter Bot Token>",
-    "server_id": "<Enter Server ID>",
-    "experimental_commands": false
-}
