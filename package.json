@@ -1,0 +1,30 @@
+{
+    "name": "pap-discord-reborn",
+    "version": "0.0.1",
+    "description": "New year, time for a new recode of the project",
+    "main": "index.js",
+    "scripts": {
+        "dev": "tsx watch src/bot.ts",
+        "start": "node dist/bot.js",
+        "build": "tsup src/bot.ts --minify"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/LilithTheDeveloper/pap-discordbot.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/LilithTheDeveloper/pap-discordbot/issues"
+    },
+    "homepage": "https://github.com/LilithTheDeveloper/pap-discordbot#readme",
+    "dependencies": {
+        "discord.js": "^14.14.1",
+        "dotenv": "^16.3.2"
+    },
+    "devDependencies": {
+        "tsup": "^8.0.1",
+        "tsx": "^4.7.0",
+        "typescript": "^5.3.3"
+    }
+}
